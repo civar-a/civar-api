@@ -28,9 +28,7 @@ RUN npm install --omit=dev
 # Copy compiled output
 COPY --from=build /app/dist ./dist
 
-# Copy generated Prisma client
-COPY --from=build /app/node_modules/.prisma ./node_modules/.prisma
-COPY --from=build /app/node_modules/@prisma ./node_modules/@prisma
+
 
 # Non-root user for security
 USER node
