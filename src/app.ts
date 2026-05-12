@@ -8,6 +8,7 @@ import hpp from "hpp";
  * routes
  */
 import v1Routes from "./routes/v1";
+import { AssistantService } from "./services/assistant.service";
 
 
 
@@ -15,6 +16,7 @@ import v1Routes from "./routes/v1";
 
 export const createApp = (): Application => {
   const app = express();
+  const assistantService = new AssistantService();
 
   /**
    * Disallow all crawlers via robots.txt
@@ -145,6 +147,14 @@ export const createApp = (): Application => {
    * ROUTE /api/v1
    */
   app.use("/api/v1", v1Routes);
+
+  /**
+   * ROUTE /api/assistant
+   */
+  app.post("/api/assistant/ask", async (req, res) => {
+    const result = await assistantService.ask(req.body ?? {});
+    return res.status(result.status).json(result.body);
+  });
 
 
 
