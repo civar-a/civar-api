@@ -1,0 +1,373 @@
+\documentclass[12pt,a4paper]{article}
+
+% -------------------- Packages --------------------
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath}
+\usepackage{setspace}
+\usepackage{times}
+\usepackage{titlesec}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{longtable}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{listings}
+
+% -------------------- Formatting --------------------
+\onehalfspacing
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt}
+
+\titleformat{\section}
+  {\normalfont\Large\bfseries}
+  {\thesection.}{0.5em}{}
+
+\titleformat{\subsection}
+  {\normalfont\large\bfseries}
+  {\thesubsection.}{0.5em}{}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=black,
+    urlcolor=blue,
+    citecolor=black
+}
+
+\lstdefinestyle{jsonstyle}{
+    basicstyle=\ttfamily\small,
+    breaklines=true,
+    frame=single,
+    backgroundcolor=\color{gray!5},
+    showstringspaces=false
+}
+
+\lstset{style=jsonstyle}
+
+% -------------------- Document --------------------
+\begin{document}
+
+% -------------------- Title Page --------------------
+\begin{titlepage}
+    \centering
+
+    \vspace*{1.5cm}
+
+    {\Large \textbf{Galala University}}\\[1.5cm]
+
+    {\LARGE \textbf{Civara}}\\[0.4cm]
+
+    {\Large \textbf{Frontend Application Requirements}}\\[0.5cm]
+
+    {\large \textbf{A Web Dashboard for Student Performance Statistical Analysis}}\\[2cm]
+
+    \begin{table}[h!]
+        \centering
+        \renewcommand{\arraystretch}{1.4}
+        \begin{tabular}{>{\bfseries}l l}
+            Project Name: & Civara \\
+            Domain: & \texttt{civara.mahros.dev} \\
+            API Base (Prod): & \texttt{https://civara.mahros.dev/api/v1} \\
+            API Base (Local): & \texttt{http://localhost:3030/api/v1} \\
+        \end{tabular}
+    \end{table}
+
+    \vfill
+
+    {\large \today}
+\end{titlepage}
+
+% -------------------- Main Content --------------------
+
+\section{Overview}
+
+This document defines the requirements for a frontend web application compatible with the Civara API contract (\texttt{requirements/api-contract.tex}) and the Postman collection (\texttt{postman.json}).
+
+The frontend provides a simple, professional dashboard that allows users to:
+\begin{itemize}
+    \item Upload a CSV dataset of student scores.
+    \item Choose the score type to analyze.
+    \item Submit the dataset to the API for analysis.
+    \item View and interpret results (descriptive statistics, confidence interval, hypothesis test summary).
+    \item Cache the latest analysis locally to support fast reloads without a database.
+\end{itemize}
+
+\section{Non-Goals}
+
+\begin{itemize}
+    \item No authentication, login, roles, or user accounts.
+    \item No server-side persistence requirements (the API does not store datasets).
+    \item No admin panel.
+    \item No multi-user collaboration.
+\end{itemize}
+
+\section{Target Users}
+
+\begin{itemize}
+    \item Students learning descriptive statistics and hypothesis testing.
+    \item Instructors demonstrating statistical inference with real datasets.
+    \item General users exploring the student performance dataset structure.
+\end{itemize}
+
+\section{Supported Browsers and Devices}
+
+\begin{itemize}
+    \item Desktop: Latest Chrome, Edge, and Firefox.
+    \item Mobile: Responsive layout is required, but data tables may switch to stacked cards for readability.
+\end{itemize}
+
+\section{Frontend Architecture (High-Level)}
+
+\subsection{Recommended Technology}
+
+The implementation must be a modern single-page application (SPA). The exact framework may vary, but the minimum expectations are:
+\begin{itemize}
+    \item TypeScript support (recommended).
+    \item Component-based UI architecture.
+    \item A production build pipeline with environment-based configuration.
+\end{itemize}
+
+\subsection{Configuration}
+
+The frontend must use a configurable API base URL.
+
+Required configuration variable:
+\begin{itemize}
+    \item \texttt{API\_BASE\_URL} (e.g., \texttt{https://civara.mahros.dev/api/v1}).
+\end{itemize}
+
+For local development:
+\begin{itemize}
+    \item \texttt{API\_BASE\_URL = http://localhost:3030/api/v1}
+\end{itemize}
+
+\section{API Integration Requirements}
+
+\subsection{Endpoints}
+
+The frontend must integrate with the following endpoints defined in the API contract:
+\begin{itemize}
+    \item \texttt{GET /health}
+    \item \texttt{POST /analyze} (multipart/form-data)
+\end{itemize}
+
+\subsection{Standard Response Envelope}
+
+All API responses must be parsed using the standardized envelope.
+
+\subsubsection{Success (Object)}
+\begin{lstlisting}
+{
+  "success": true,
+  "message": "Request completed successfully",
+  "data": { },
+  "meta": null
+}
+\end{lstlisting}
+
+\subsubsection{Success (List + Pagination)}
+\begin{lstlisting}
+{
+  "success": true,
+  "message": "Request completed successfully",
+  "data": [ ],
+  "meta": {
+    "pagination": {
+      "page": 1,
+      "limit": 10,
+      "totalItems": 125,
+      "totalPages": 13,
+      "hasNextPage": true,
+      "hasPreviousPage": false
+    }
+  }
+}
+\end{lstlisting}
+
+\subsubsection{Error}
+\begin{lstlisting}
+{
+  "success": false,
+  "message": "Validation failed",
+  "data": null,
+  "meta": null,
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "The uploaded file is missing the required column: gender."
+  }
+}
+\end{lstlisting}
+
+\subsection{Health Check Usage}
+
+The frontend must include a lightweight health check mechanism:
+\begin{itemize}
+    \item Run \texttt{GET /health} on-demand (e.g., via a button) or as part of a diagnostics page/section.
+    \item Display API availability status (online/offline) and the returned service label.
+\end{itemize}
+
+\subsection{Analyze Request (CSV Upload)}
+
+\subsubsection{Request}
+
+The frontend must submit analysis requests as \texttt{multipart/form-data} with:
+\begin{itemize}
+    \item \texttt{file}: the CSV file.
+    \item \texttt{scoreType}: optional, defaults to \texttt{average}.
+\end{itemize}
+
+Supported \texttt{scoreType} values:
+\begin{itemize}
+    \item \texttt{average}, \texttt{math}, \texttt{reading}, \texttt{writing}
+\end{itemize}
+
+\subsubsection{Response}
+
+The frontend must render the analysis response from:
+\begin{itemize}
+    \item \texttt{data.project}
+    \item \texttt{data.analysis.scoreType}
+    \item \texttt{data.analysis.groupVariable}
+    \item \texttt{data.analysis.groups.male} and \texttt{data.analysis.groups.female}
+    \item \texttt{data.analysis.comparison} fields
+    \item \texttt{data.analysis.interpretation}
+\end{itemize}
+
+\section{User Experience Requirements}
+
+\subsection{Primary Screens / Routes}
+
+The frontend must include at minimum:
+\begin{itemize}
+    \item \textbf{Home / Upload}: Upload CSV + select scoreType + run analysis.
+    \item \textbf{Results}: View results in a readable, structured layout (may be same page as upload).
+    \item \textbf{About / Help}: Dataset format help, required columns, scoreType meaning, and API base URL.
+\end{itemize}
+
+\subsection{Upload Experience}
+
+\begin{itemize}
+    \item Allow selecting a local file via file picker and drag-and-drop (recommended).
+    \item Show selected file name and size.
+    \item Provide a clear ``Analyze'' call-to-action.
+    \item Disable submit while a request is in progress.
+    \item Show a loading state during analysis (spinner + message).
+    \item Provide a ``Reset'' action to clear current results and selected file.
+\end{itemize}
+
+\subsection{Client-Side Validation (Preflight)}
+
+Before sending the request, the frontend must validate:
+\begin{itemize}
+    \item A file is selected.
+    \item File extension is \texttt{.csv} (basic validation).
+    \item \texttt{scoreType} is one of the supported values.
+\end{itemize}
+
+If validation fails, show a user-friendly message and do not send the request.
+
+\subsection{Error Handling}
+
+The frontend must display errors consistently:
+\begin{itemize}
+    \item Use \texttt{message} as the primary user-facing summary.
+    \item If present, show \texttt{error.code} and \texttt{error.message}.
+    \item Provide an option to retry.
+\end{itemize}
+
+The UI must specifically handle common error codes from the API contract:
+\begin{itemize}
+    \item \texttt{NO\_FILE}
+    \item \texttt{INVALID\_FILE\_TYPE}
+    \item \texttt{MISSING\_COLUMNS}
+    \item \texttt{INVALID\_DATA}
+    \item \texttt{INSUFFICIENT\_GROUPS}
+    \item \texttt{ANALYSIS\_FAILED}
+\end{itemize}
+
+\subsection{Results Presentation}
+
+The results view must be structured into sections:
+\begin{itemize}
+    \item \textbf{Summary}: scoreType, groupVariable, sample sizes, significance.
+    \item \textbf{Group Statistics}: male vs female metrics (mean, std dev, min, max).
+    \item \textbf{Comparison / Inference}: meanDifference, confidence interval, pValue, tStatistic, degreesOfFreedom.
+    \item \textbf{Interpretation}: display the provided interpretation text prominently.
+\end{itemize}
+
+Numerical formatting:
+\begin{itemize}
+    \item Use fixed decimal formatting for readability (e.g., 2 decimals), without changing the underlying values.
+    \item Ensure p-values are shown clearly (e.g., \texttt{0.00005}).
+\end{itemize}
+
+\section{State Management and Caching}
+
+\subsection{In-Memory State}
+
+During a session, keep:
+\begin{itemize}
+    \item Selected file metadata (name, size).
+    \item Selected scoreType.
+    \item Latest analysis response.
+    \item Loading and error states.
+\end{itemize}
+
+\subsection{Persistent Cache}
+
+The frontend must cache the last analysis result in browser storage under:
+\begin{lstlisting}
+civara:last-analysis
+\end{lstlisting}
+
+Recommended cached object structure:
+\begin{lstlisting}
+{
+  "uploadedAt": "2026-05-12T10:30:00.000Z",
+  "fileName": "students.csv",
+  "analysis": { }
+}
+\end{lstlisting}
+
+Caching behavior:
+\begin{itemize}
+    \item Save on successful analysis response.
+    \item Load on app start and restore the results view.
+    \item Provide a UI action to clear the cache.
+\end{itemize}
+
+\section{Security and Privacy Requirements}
+
+\begin{itemize}
+    \item Do not log dataset contents to the console in production builds.
+    \item Do not persist the raw CSV content in browser storage (store only API response + file name + timestamp).
+    \item Use HTTPS in production deployments.
+\end{itemize}
+
+\section{Accessibility Requirements}
+
+\begin{itemize}
+    \item All form controls must have labels.
+    \item Provide keyboard navigation for primary actions (upload, analyze, reset).
+    \item Ensure color contrast for text and key UI elements.
+\end{itemize}
+
+\section{Performance Requirements}
+
+\begin{itemize}
+    \item Avoid blocking the UI thread during upload; show progress or loading indicators.
+    \item Keep bundle size reasonable; avoid heavy charting libraries unless necessary.
+\end{itemize}
+
+\section{Acceptance Criteria}
+
+The frontend is considered complete when:
+\begin{itemize}
+    \item A user can upload a CSV, select scoreType, and receive results via \texttt{POST /analyze}.
+    \item Results render correctly using the standardized response envelope.
+    \item Errors are displayed cleanly using \texttt{success}, \texttt{message}, and \texttt{error}.
+    \item The latest successful analysis is cached and restored on refresh using \texttt{civara:last-analysis}.
+    \item API base URL is configurable and defaults to production.
+\end{itemize}
+
+\end{document}
+

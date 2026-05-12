@@ -1,0 +1,51 @@
+.env
+*.env*
+
+dist
+node_modules
+
+# Version Control
+.git
+.gitignore
+.gitattributes
+
+# IDE and Editor files
+.vscode
+.idea
+*.swp
+*.swo
+*~
+.DS_Store
+.env.local
+.env.*.local
+
+# Testing
+coverage
+*.spec.ts
+*.test.ts
+jest.config.js
+
+# Build and temp
+build
+tmp
+.turbo
+
+# Documentation and config
+README.md
+CHANGELOG.md
+.npmrc
+.yarnrc
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-error.log*
+
+# Other
+.npm
+.yarn
+.pnpm-debug.log*
+Dockerfile
+docker-compose*.yml
+.dockerignore

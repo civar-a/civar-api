@@ -1,0 +1,550 @@
+\documentclass[12pt,a4paper]{article}
+
+% -------------------- Packages --------------------
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath}
+\usepackage{setspace}
+\usepackage{times}
+\usepackage{titlesec}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{longtable}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{listings}
+
+% -------------------- Formatting --------------------
+\onehalfspacing
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt}
+
+\titleformat{\section}
+  {\normalfont\Large\bfseries}
+  {\thesection.}{0.5em}{}
+
+\titleformat{\subsection}
+  {\normalfont\large\bfseries}
+  {\thesubsection.}{0.5em}{}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=black,
+    urlcolor=blue,
+    citecolor=black
+}
+
+\lstdefinestyle{jsonstyle}{
+    basicstyle=\ttfamily\small,
+    breaklines=true,
+    frame=single,
+    backgroundcolor=\color{gray!5},
+    showstringspaces=false
+}
+
+\lstset{style=jsonstyle}
+
+% -------------------- Document --------------------
+\begin{document}
+
+% -------------------- Title Page --------------------
+\begin{titlepage}
+    \centering
+
+    \vspace*{1.5cm}
+
+    {\Large \textbf{Galala University}}\\[1.5cm]
+
+    {\LARGE \textbf{Civara}}\\[0.4cm]
+
+    {\Large \textbf{API Contract}}\\[0.5cm]
+
+    {\large \textbf{A Public Statistical Analysis API for Student Performance Datasets}}\\[2cm]
+
+    \begin{table}[h!]
+        \centering
+        \renewcommand{\arraystretch}{1.4}
+        \begin{tabular}{>{\bfseries}l l}
+            Student Name: & Mahros Mohamed \\
+            Student ID: & 223106831 \\
+            Course: & Probability and Statistics \\
+            University: & Galala University \\
+            Project Name: & Civara \\
+            Domain: & \texttt{civara.mahros.dev} \\
+        \end{tabular}
+    \end{table}
+
+    \vfill
+
+    {\large \today}
+
+\end{titlepage}
+
+% -------------------- Main Content --------------------
+
+\section{Overview}
+
+Civara is a simple public API designed to analyze student performance datasets. The system allows a user to upload a CSV file, sends the dataset to the API, and receives a statistical analysis response.
+
+The API focuses on descriptive statistics, confidence intervals, and hypothesis testing for comparing two independent groups, such as male and female students.
+
+The API does not require authentication and does not depend on a database. Analysis is performed per request, and any persistence may be handled temporarily through application memory or browser cache.
+
+\section{Base URL}
+
+The production base URL is:
+
+\begin{lstlisting}
+https://civara.mahros.dev/api/v1
+\end{lstlisting}
+
+For local development, the base URL may be:
+
+\begin{lstlisting}
+http://localhost:3030/api/v1
+\end{lstlisting}
+
+\section{Authentication}
+
+The API is public.
+
+No authentication token, API key, or user account is required.
+
+\section{Data Persistence}
+
+The API does not permanently store uploaded datasets.
+
+The expected behavior is:
+
+\begin{itemize}
+    \item The client uploads a dataset.
+    \item The server analyzes the dataset.
+    \item The server returns the analysis result immediately.
+    \item The client may store the result in browser cache or local storage.
+    \item The server may keep temporary in-memory data only when needed.
+\end{itemize}
+
+\section{Supported File Format}
+
+The API accepts CSV files.
+
+The uploaded CSV file should contain the following columns:
+
+\begin{table}[h!]
+\centering
+\renewcommand{\arraystretch}{1.4}
+\begin{tabular}{p{4cm} p{8cm}}
+\toprule
+\textbf{Column Name} & \textbf{Description} \\
+\midrule
+\texttt{gender} & The group variable used for comparison. \\
+\texttt{math score} & Student score in mathematics. \\
+\texttt{reading score} & Student score in reading. \\
+\texttt{writing score} & Student score in writing. \\
+\bottomrule
+\end{tabular}
+\caption{Required CSV columns}
+\end{table}
+
+The API calculates the average score using:
+
+\[
+\text{Average Score} =
+\frac{\text{Math Score} + \text{Reading Score} + \text{Writing Score}}{3}
+\]
+
+\section{API Endpoints}
+
+\section{Standard API Response Envelope}
+
+All endpoints in this API return a consistent JSON envelope.
+
+\subsection{Success Response (Single Object)}
+
+\begin{lstlisting}
+{
+  "success": true,
+  "message": "Request completed successfully",
+  "data": {
+    // ...
+  },
+  "meta": null
+}
+\end{lstlisting}
+
+\subsection{Success Response (List + Pagination)}
+
+When an endpoint returns a list, it uses the same envelope, and includes pagination metadata.
+
+\begin{lstlisting}
+{
+  "success": true,
+  "message": "Request completed successfully",
+  "data": [
+    // ...
+  ],
+  "meta": {
+    "pagination": {
+      "page": 1,
+      "limit": 10,
+      "totalItems": 125,
+      "totalPages": 13,
+      "hasNextPage": true,
+      "hasPreviousPage": false
+    }
+  }
+}
+\end{lstlisting}
+
+\subsection{Error Response}
+
+All error responses also follow the same envelope and include an \texttt{error} object.
+
+\begin{lstlisting}
+{
+  "success": false,
+  "message": "Validation failed",
+  "data": null,
+  "meta": null,
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "The uploaded file is missing the required column: gender."
+  }
+}
+\end{lstlisting}
+
+\subsection{Health Check}
+
+\textbf{Endpoint}
+
+\begin{lstlisting}
+GET /health
+\end{lstlisting}
+
+\textbf{Description}
+
+Checks whether the API is running.
+
+\textbf{Successful Response}
+
+\begin{lstlisting}
+{
+  "success": true,
+  "message": "Request completed successfully",
+  "data": {
+    "status": "ok",
+    "service": "Civara API"
+  },
+  "meta": null
+}
+\end{lstlisting}
+
+\textbf{Status Codes}
+
+\begin{table}[h!]
+\centering
+\renewcommand{\arraystretch}{1.3}
+\begin{tabular}{c p{9cm}}
+\toprule
+\textbf{Status Code} & \textbf{Meaning} \\
+\midrule
+200 & API is running successfully. \\
+\bottomrule
+\end{tabular}
+\caption{Health check status code}
+\end{table}
+
+\newpage
+
+\subsection{Analyze Dataset}
+
+\textbf{Endpoint}
+
+\begin{lstlisting}
+POST /analyze
+\end{lstlisting}
+
+\textbf{Description}
+
+Uploads a CSV dataset and returns statistical analysis results.
+
+\textbf{Request Type}
+
+\begin{lstlisting}
+multipart/form-data
+\end{lstlisting}
+
+\textbf{Request Body}
+
+\begin{table}[h!]
+\centering
+\renewcommand{\arraystretch}{1.4}
+\begin{tabular}{p{4cm} p{3cm} p{6cm}}
+\toprule
+\textbf{Field} & \textbf{Type} & \textbf{Description} \\
+\midrule
+\texttt{file} & File & The CSV dataset to be analyzed. \\
+\texttt{scoreType} & String & Optional. Defaults to \texttt{average}. \\
+\bottomrule
+\end{tabular}
+\caption{Analyze dataset request body}
+\end{table}
+
+\textbf{Supported Score Types}
+
+\begin{table}[h!]
+\centering
+\renewcommand{\arraystretch}{1.4}
+\begin{tabular}{p{4cm} p{8cm}}
+\toprule
+\textbf{Value} & \textbf{Description} \\
+\midrule
+\texttt{average} & Uses the average of math, reading, and writing scores. \\
+\texttt{math} & Uses math score only. \\
+\texttt{reading} & Uses reading score only. \\
+\texttt{writing} & Uses writing score only. \\
+\bottomrule
+\end{tabular}
+\caption{Supported score types}
+\end{table}
+
+\section{Successful Analysis Response}
+
+\textbf{Status Code}
+
+\begin{lstlisting}
+200 OK
+\end{lstlisting}
+
+\textbf{Response Body}
+
+\begin{lstlisting}
+{
+  "success": true,
+  "message": "Request completed successfully",
+  "data": {
+    "project": "Civara",
+    "analysis": {
+      "scoreType": "average",
+      "groupVariable": "gender",
+      "groups": {
+        "male": {
+          "sampleSize": 482,
+          "mean": 65.84,
+          "standardDeviation": 14.10,
+          "minimum": 9.00,
+          "maximum": 100.00
+        },
+        "female": {
+          "sampleSize": 518,
+          "mean": 69.57,
+          "standardDeviation": 14.54,
+          "minimum": 23.00,
+          "maximum": 100.00
+        }
+      },
+      "comparison": {
+        "meanDifference": -3.73,
+        "standardError": 0.91,
+        "degreesOfFreedom": 996.12,
+        "confidenceLevel": 0.95,
+        "confidenceInterval": {
+          "lower": -5.52,
+          "upper": -1.94
+        },
+        "tStatistic": -4.09,
+        "pValue": 0.00005,
+        "isSignificant": true
+      },
+      "interpretation": "The 95% confidence interval does not contain zero. Therefore, there is a statistically significant difference between the mean scores of male and female students at the 5% significance level."
+    }
+  },
+  "meta": null
+}
+\end{lstlisting}
+
+\section{Response Fields}
+
+\begin{longtable}{p{5cm} p{8cm}}
+\toprule
+\textbf{Field} & \textbf{Description} \\
+\midrule
+\texttt{success} & Indicates whether the request was processed successfully. \\
+\texttt{message} & A human-readable summary of the result. \\
+\texttt{data} & The response payload. When \texttt{success=true}, this contains the expected result object or list. \\
+\texttt{meta} & Optional metadata object. \texttt{null} when not applicable. \\
+\texttt{meta.pagination} & Present only for list endpoints that support pagination. \\
+\texttt{data.project} & The project name. \\
+\texttt{data.analysis.scoreType} & The score used in the analysis. \\
+\texttt{data.analysis.groupVariable} & The variable used to separate the two groups. \\
+\texttt{sampleSize} & Number of observations in each group. \\
+\texttt{mean} & Sample mean for each group. \\
+\texttt{standardDeviation} & Sample standard deviation for each group. \\
+\texttt{minimum} & Minimum score in each group. \\
+\texttt{maximum} & Maximum score in each group. \\
+\texttt{meanDifference} & Difference between the two group means. \\
+\texttt{standardError} & Standard error of the difference between means. \\
+\texttt{degreesOfFreedom} & Welch degrees of freedom. \\
+\texttt{confidenceLevel} & Confidence level used in the interval. \\
+\texttt{confidenceInterval.lower} & Lower bound of the confidence interval. \\
+\texttt{confidenceInterval.upper} & Upper bound of the confidence interval. \\
+\texttt{tStatistic} & Test statistic from Welch's two-sample t-test. \\
+\texttt{pValue} & Probability value from the hypothesis test. \\
+\texttt{isSignificant} & Indicates whether the result is statistically significant. \\
+\texttt{interpretation} & Plain-language statistical conclusion. \\
+\bottomrule
+\caption{Analysis response fields}
+\end{longtable}
+
+\section{Statistical Method}
+
+The API compares two independent groups using Welch's two-sample method.
+
+The parameter of interest is:
+
+\[
+\mu_{\text{male}} - \mu_{\text{female}}
+\]
+
+The standard error is calculated as:
+
+\[
+SE =
+\sqrt{
+\frac{s_m^2}{n_m}
++
+\frac{s_f^2}{n_f}
+}
+\]
+
+The 95\% confidence interval is calculated as:
+
+\[
+(\bar{x}_m - \bar{x}_f)
+\pm
+t_{\alpha/2} \times SE
+\]
+
+where:
+
+\begin{itemize}
+    \item $\bar{x}_m$ is the male sample mean.
+    \item $\bar{x}_f$ is the female sample mean.
+    \item $s_m$ is the male sample standard deviation.
+    \item $s_f$ is the female sample standard deviation.
+    \item $n_m$ is the male sample size.
+    \item $n_f$ is the female sample size.
+\end{itemize}
+
+The null and alternative hypotheses are:
+
+\[
+H_0: \mu_{\text{male}} = \mu_{\text{female}}
+\]
+
+\[
+H_1: \mu_{\text{male}} \neq \mu_{\text{female}}
+\]
+
+The result is considered statistically significant when:
+
+\[
+p < 0.05
+\]
+
+\section{Validation Rules}
+
+The API validates the uploaded dataset before analysis.
+
+\begin{table}[h!]
+\centering
+\renewcommand{\arraystretch}{1.4}
+\begin{tabular}{p{5cm} p{8cm}}
+\toprule
+\textbf{Validation Rule} & \textbf{Expected Behavior} \\
+\midrule
+Missing file & Return a validation error. \\
+Invalid file type & Return a validation error. \\
+Missing required columns & Return a validation error. \\
+Non-numeric score values & Return a validation error. \\
+Less than two gender groups & Return a validation error. \\
+Empty dataset & Return a validation error. \\
+\bottomrule
+\end{tabular}
+\caption{Dataset validation rules}
+\end{table}
+
+\section{Error Response Format}
+
+All error responses follow the standard response envelope.
+
+\begin{lstlisting}
+{
+  "success": false,
+  "message": "Validation failed",
+  "data": null,
+  "meta": null,
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "The uploaded file is missing the required column: gender."
+  }
+}
+\end{lstlisting}
+
+\section{Error Codes}
+
+\begin{table}[h!]
+\centering
+\renewcommand{\arraystretch}{1.4}
+\begin{tabular}{p{4cm} p{3cm} p{6cm}}
+\toprule
+\textbf{Error Code} & \textbf{HTTP Status} & \textbf{Description} \\
+\midrule
+\texttt{NO\_FILE} & 400 & No file was uploaded. \\
+\texttt{\detokenize{INVALID_FILE_TYPE}} & 400 & The uploaded file is not a CSV file. \\
+\texttt{\detokenize{MISSING_COLUMNS}} & 400 & One or more required columns are missing. \\
+\texttt{\detokenize{INVALID_DATA}} & 400 & The dataset contains invalid or non-numeric values. \\
+\texttt{\detokenize{INSUFFICIENT_GROUPS}} & 400 & The dataset does not contain two valid groups. \\
+\texttt{\detokenize{ANALYSIS_FAILED}} & 500 & The server failed to complete the analysis. \\
+\bottomrule
+\end{tabular}
+\caption{API error codes}
+\end{table}
+
+\section{Example Request}
+
+Using \texttt{curl}:
+
+\begin{lstlisting}
+curl -X POST https://civara.mahros.dev/api/v1/analyze \
+  -F "file=@students.csv" \
+  -F "scoreType=average"
+\end{lstlisting}
+
+\section{Client-Side Cache Recommendation}
+
+Since the API does not use a database, the frontend may store the latest result in browser storage.
+
+Recommended browser storage key:
+
+\begin{lstlisting}
+civara:last-analysis
+\end{lstlisting}
+
+The cached object may contain:
+
+\begin{lstlisting}
+{
+  "uploadedAt": "2026-05-12T10:30:00.000Z",
+  "fileName": "students.csv",
+  "analysis": {}
+}
+\end{lstlisting}
+
+This allows the dashboard to reload the latest analysis without requiring the user to upload the dataset again.
+
+\section{Conclusion}
+
+This API contract defines a minimal and practical public interface for Civara. The design is intentionally simple: a user uploads a CSV dataset, the API validates and analyzes the data, and the response contains the statistical results needed for interpretation.
+
+The API supports the main goal of the project by converting a manual statistical workflow into a small, usable software system.
+\end{document}

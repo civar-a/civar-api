@@ -1,0 +1,242 @@
+{
+  "info": {
+    "_postman_id": "0c74aa40-d7b3-4e3b-9fb8-c1ec7ecfd6e4",
+    "name": "Civara API (v1)",
+    "description": "Generated from requirements/api-contract.tex. Base URL defaults to production; override {{baseUrl}} for local development.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "https://civara.mahros.dev/api/v1",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health Check",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Accept", "value": "application/json" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/health",
+          "host": [ "{{baseUrl}}" ],
+          "path": [ "health" ]
+        },
+        "description": "GET /health — Checks whether the API is running."
+      },
+      "response": [
+        {
+          "name": "200 OK",
+          "originalRequest": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": [ "{{baseUrl}}" ],
+              "path": [ "health" ]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [
+            { "key": "Content-Type", "value": "application/json" }
+          ],
+          "body": "{\n  \"success\": true,\n  \"message\": \"Request completed successfully\",\n  \"data\": {\n    \"status\": \"ok\",\n    \"service\": \"Civara API\"\n  },\n  \"meta\": null\n}"
+        }
+      ]
+    },
+    {
+      "name": "Analyze Dataset",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Accept", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "file",
+              "type": "file",
+              "description": "CSV dataset to be analyzed (choose a local .csv file in Postman)."
+            },
+            {
+              "key": "scoreType",
+              "type": "text",
+              "value": "average",
+              "description": "Optional. Defaults to average. Supported: average, math, reading, writing."
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{baseUrl}}/analyze",
+          "host": [ "{{baseUrl}}" ],
+          "path": [ "analyze" ]
+        },
+        "description": "POST /analyze — Uploads a CSV dataset and returns statistical analysis results (multipart/form-data)."
+      },
+      "response": [
+        {
+          "name": "200 OK (Example Analysis)",
+          "originalRequest": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "file", "type": "file" },
+                { "key": "scoreType", "type": "text", "value": "average" }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/analyze",
+              "host": [ "{{baseUrl}}" ],
+              "path": [ "analyze" ]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [
+            { "key": "Content-Type", "value": "application/json" }
+          ],
+          "body": "{\n  \"success\": true,\n  \"message\": \"Request completed successfully\",\n  \"data\": {\n    \"project\": \"Civara\",\n    \"analysis\": {\n      \"scoreType\": \"average\",\n      \"groupVariable\": \"gender\",\n      \"groups\": {\n        \"male\": {\n          \"sampleSize\": 482,\n          \"mean\": 65.84,\n          \"standardDeviation\": 14.1,\n          \"minimum\": 9,\n          \"maximum\": 100\n        },\n        \"female\": {\n          \"sampleSize\": 518,\n          \"mean\": 69.57,\n          \"standardDeviation\": 14.54,\n          \"minimum\": 23,\n          \"maximum\": 100\n        }\n      },\n      \"comparison\": {\n        \"meanDifference\": -3.73,\n        \"standardError\": 0.91,\n        \"degreesOfFreedom\": 996.12,\n        \"confidenceLevel\": 0.95,\n        \"confidenceInterval\": {\n          \"lower\": -5.52,\n          \"upper\": -1.94\n        },\n        \"tStatistic\": -4.09,\n        \"pValue\": 0.00005,\n        \"isSignificant\": true\n      },\n      \"interpretation\": \"The 95% confidence interval does not contain zero. Therefore, there is a statistically significant difference between the mean scores of male and female students at the 5% significance level.\"\n    }\n  },\n  \"meta\": null\n}"
+        },
+        {
+          "name": "400 Bad Request (NO_FILE)",
+          "originalRequest": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/analyze",
+              "host": [ "{{baseUrl}}" ],
+              "path": [ "analyze" ]
+            }
+          },
+          "status": "Bad Request",
+          "code": 400,
+          "_postman_previewlanguage": "json",
+          "header": [
+            { "key": "Content-Type", "value": "application/json" }
+          ],
+          "body": "{\n  \"success\": false,\n  \"message\": \"Validation failed\",\n  \"data\": null,\n  \"meta\": null,\n  \"error\": {\n    \"code\": \"NO_FILE\",\n    \"message\": \"No file was uploaded.\"\n  }\n}"
+        },
+        {
+          "name": "400 Bad Request (INVALID_FILE_TYPE)",
+          "originalRequest": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/analyze",
+              "host": [ "{{baseUrl}}" ],
+              "path": [ "analyze" ]
+            }
+          },
+          "status": "Bad Request",
+          "code": 400,
+          "_postman_previewlanguage": "json",
+          "header": [
+            { "key": "Content-Type", "value": "application/json" }
+          ],
+          "body": "{\n  \"success\": false,\n  \"message\": \"Validation failed\",\n  \"data\": null,\n  \"meta\": null,\n  \"error\": {\n    \"code\": \"INVALID_FILE_TYPE\",\n    \"message\": \"The uploaded file is not a CSV file.\"\n  }\n}"
+        },
+        {
+          "name": "400 Bad Request (MISSING_COLUMNS)",
+          "originalRequest": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/analyze",
+              "host": [ "{{baseUrl}}" ],
+              "path": [ "analyze" ]
+            }
+          },
+          "status": "Bad Request",
+          "code": 400,
+          "_postman_previewlanguage": "json",
+          "header": [
+            { "key": "Content-Type", "value": "application/json" }
+          ],
+          "body": "{\n  \"success\": false,\n  \"message\": \"Validation failed\",\n  \"data\": null,\n  \"meta\": null,\n  \"error\": {\n    \"code\": \"MISSING_COLUMNS\",\n    \"message\": \"One or more required columns are missing.\"\n  }\n}"
+        },
+        {
+          "name": "400 Bad Request (INVALID_DATA)",
+          "originalRequest": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/analyze",
+              "host": [ "{{baseUrl}}" ],
+              "path": [ "analyze" ]
+            }
+          },
+          "status": "Bad Request",
+          "code": 400,
+          "_postman_previewlanguage": "json",
+          "header": [
+            { "key": "Content-Type", "value": "application/json" }
+          ],
+          "body": "{\n  \"success\": false,\n  \"message\": \"Validation failed\",\n  \"data\": null,\n  \"meta\": null,\n  \"error\": {\n    \"code\": \"INVALID_DATA\",\n    \"message\": \"The dataset contains invalid or non-numeric values.\"\n  }\n}"
+        },
+        {
+          "name": "400 Bad Request (INSUFFICIENT_GROUPS)",
+          "originalRequest": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/analyze",
+              "host": [ "{{baseUrl}}" ],
+              "path": [ "analyze" ]
+            }
+          },
+          "status": "Bad Request",
+          "code": 400,
+          "_postman_previewlanguage": "json",
+          "header": [
+            { "key": "Content-Type", "value": "application/json" }
+          ],
+          "body": "{\n  \"success\": false,\n  \"message\": \"Validation failed\",\n  \"data\": null,\n  \"meta\": null,\n  \"error\": {\n    \"code\": \"INSUFFICIENT_GROUPS\",\n    \"message\": \"The dataset does not contain two valid groups.\"\n  }\n}"
+        },
+        {
+          "name": "500 Internal Server Error (ANALYSIS_FAILED)",
+          "originalRequest": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/analyze",
+              "host": [ "{{baseUrl}}" ],
+              "path": [ "analyze" ]
+            }
+          },
+          "status": "Internal Server Error",
+          "code": 500,
+          "_postman_previewlanguage": "json",
+          "header": [
+            { "key": "Content-Type", "value": "application/json" }
+          ],
+          "body": "{\n  \"success\": false,\n  \"message\": \"Analysis failed\",\n  \"data\": null,\n  \"meta\": null,\n  \"error\": {\n    \"code\": \"ANALYSIS_FAILED\",\n    \"message\": \"The server failed to complete the analysis.\"\n  }\n}"
+        }
+      ]
+    }
+  ]
+}
