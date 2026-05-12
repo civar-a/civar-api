@@ -11,9 +11,6 @@ COPY package*.json ./
 RUN npm install --include=dev
 
 
-# Copy Prisma schema and generate client before building the app
-COPY prisma ./prisma
-RUN npx prisma generate
 
 COPY tsconfig.json ./
 COPY src ./src
