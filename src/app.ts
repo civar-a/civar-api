@@ -55,7 +55,9 @@ export const createApp = (): Application => {
     "usercontent.goog",
     "ngrok-free.dev",
     "lovable.app",
-    "mahros.dev"
+    "mahros.dev",
+    "run.app",
+    "civara.mahros.dev"
   ];
 
   const allowedDomainsEnv = process.env.CORS_ALLOWED_DOMAINS;
